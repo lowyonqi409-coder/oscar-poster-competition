@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSCAR 黄梨水 Poster 大赛</title>
+<style>
+:root{--gold:#f6c445;--red:#a92319;--cream:#fff9e9;--ink:#30251d}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans SC",sans-serif;background:var(--cream);color:var(--ink)}
+header{background:linear-gradient(120deg,#8f1713,#d34b20 58%,#f3ad32);color:white;text-align:center;padding:42px 18px}
+header .brand{font-weight:900;letter-spacing:3px;font-size:14px}h1{font-size:clamp(28px,6vw,48px);margin:12px 0}header p{margin:8px auto;max-width:650px;line-height:1.7}
+main{max-width:1050px;margin:28px auto;padding:0 16px}.panel{background:white;border-radius:18px;padding:22px;margin:18px 0;box-shadow:0 5px 22px #55220f12}
+h2{margin:0 0 14px;color:var(--red)}label{display:block;font-weight:bold;margin:12px 0 6px}input,textarea{width:100%;padding:12px;border:1px solid #ddcdb8;border-radius:10px;font:inherit}input[type=file]{background:#fffaf1}
+button{border:0;border-radius:10px;padding:12px 18px;background:var(--red);color:white;font-weight:bold;cursor:pointer;margin-top:12px}button:hover{filter:brightness(1.1)}
+.note{font-size:13px;color:#75685b;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{border:1px solid #f0e3d2;border-radius:14px;overflow:hidden;background:#fff}.card img{width:100%;height:210px;object-fit:cover;background:#f6eee2}.card .info{padding:12px}.card h3{margin:0 0 6px}.card p{margin:5px 0;color:#66584c;font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{font-size:12px;padding:8px 10px;margin-top:8px}.winner{outline:3px solid var(--gold)}.tag{display:inline-block;background:#fff0c2;color:#7c4c00;border-radius:20px;padding:4px 9px;font-size:12px;font-weight:bold}
+footer{text-align:center;padding:25px;color:#76685c;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">OSCAR · PINEAPPLE DRINK</div>
+  <h1>🍍 OSCAR 黄梨水 Poster 大赛</h1>
+  <p>同一个品牌，不同的创意！上传你的黄梨水广告海报，欣赏所有参赛作品，一起选出最出色的三张海报。</p>
+</header>
+<main>
+  <section class="panel">
+    <h2>📤 参加比赛</h2>
+    <form id="entryForm">
+      <label for="name">参赛者名称</label><input id="name" maxlength="40" required placeholder="输入昵称或参赛编号">
+      <label for="title">作品名称</label><input id="title" maxlength="60" required placeholder="为你的海报取个名字">
+      <label for="poster">上传海报图片</label><input id="poster" type="file" accept="image/*" required>
+      <label for="desc">作品介绍（选填）</label><textarea id="desc" rows="2" maxlength="240" placeholder="简单介绍你的设计灵感"></textarea>
+      <button type="submit">提交参赛作品</button>
+    </form>
+    <p class="note">演示版提示：作品目前只保存在提交者这台设备的浏览器中。正式公开比赛需要连接共享数据库和图片储存服务，其他参赛者才能在同一个网站看到作品。</p>
+  </section>
+  <section class="panel">
+    <h2>🏆 最佳三强</h2>
+    <p class="note">评审者可在下方作品卡片点击「选为前三名」；获选作品会显示在这里。</p>
+    <div id="winners" class="grid"><p class="note">暂时还没有选出获奖作品。</p></div>
+  </section>
+  <section class="panel">
+    <h2>🎨 全部参赛作品</h2>
+    <div id="gallery" class="grid"><p class="note">还没有参赛作品，来上传第一张海报吧！</p></div>
+  </section>
+</main>
+<footer>OSCAR 黄梨水 Poster 大赛 · 创意由你决定 🍍</footer>
+<script>
+const KEY='oscar_poster_entries_v1';
+let entries=JSON.parse(localStorage.getItem(KEY)||'[]');
+const gallery=document.getElementById('gallery'), winners=document.getElementById('winners');
+function save(){localStorage.setItem(KEY,JSON.stringify(entries));render()}
+function render(){
+  gallery.innerHTML=''; winners.innerHTML='';
+  if(!entries.length) gallery.innerHTML='<p class="note">还没有参赛作品，来上传第一张海报吧！</p>';
+  entries.forEach((e,i)=>{
+    const card=document.createElement('article');card.className='card'+(e.rank?' winner':'');
+    card.innerHTML=`<img src="${e.image}" alt="参赛海报"><div class="info"><h3></h3><p></p><p></p><div class="actions"><button type="button" data-rank="${i}">${e.rank?'取消前三名':'选为前三名'}</button><button type="button" data-delete="${i}" style="background:#76685c">删除</button></div></div>`;
+    card.querySelector('h3').textContent=e.title;
+    card.querySelectorAll('p')[0].textContent='参赛者：'+e.name;
+    card.querySelectorAll('p')[1].textContent=e.desc||'暂无作品介绍';
+    gallery.appendChild(card);
+  });
+  const chosen=entries.map((e,i)=>({...e,index:i})).filter(e=>e.rank).sort((a,b)=>a.rank-b.rank).slice(0,3);
+  if(!chosen.length) winners.innerHTML='<p class="note">暂时还没有选出获奖作品。</p>';
+  chosen.forEach((e,n)=>{const c=document.createElement('article');c.className='card';c.innerHTML=`<img src="${e.image}" alt="获选海报"><div class="info"><span class="tag">第 ${n+1} 名</span><h3></h3><p></p></div>`;c.querySelector('h3').textContent=e.title;c.querySelector('p').textContent='参赛者：'+e.name;winners.appendChild(c)});
+}
+document.getElementById('entryForm').addEventListener('submit',ev=>{
+  ev.preventDefault();const file=document.getElementById('poster').files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('图片请小于 5MB。');return}
+  const reader=new FileReader();reader.onload=()=>{entries.push({name:document.getElementById('name').value.trim(),title:document.getElementById('title').value.trim(),desc:document.getElementById('desc').value.trim(),image:reader.result,rank:0});save();ev.target.reset();alert('作品已加入本机演示画廊！')};reader.readAsDataURL(file);
+});
+gallery.addEventListener('click',ev=>{
+  const r=ev.target.dataset.rank,d=ev.target.dataset.delete;
+  if(r!==undefined){const idx=Number(r);if(entries[idx].rank){entries[idx].rank=0}else{const used=entries.filter(e=>e.rank).length;if(used>=3){alert('前三名已经选满，请先取消一个名额。');return}entries[idx].rank=used+1}save()}
+  if(d!==undefined){if(confirm('确定删除这件参赛作品吗？')){entries.splice(Number(d),1);save()}}
+});
+render();
+</script>
+</body>
+</html>
